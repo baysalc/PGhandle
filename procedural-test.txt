@@ -1,0 +1,62 @@
+=> INSERT INTO ttest VALUES (NULL);
+INFO:  trigf (fired before): there are 0 rows in ttest
+INSERT 0 0
+
+-- Insertion skipped and AFTER trigger is not fired
+
+=> SELECT * FROM ttest;
+ x
+---
+(0 rows)
+
+=> INSERT INTO ttest VALUES (1);
+INFO:  trigf (fired before): there are 0 rows in ttest
+INFO:  trigf (fired after ): there are 1 rows in ttest
+                                       ^^^^^^^^
+                             remember what we said about visibility.
+INSERT 167793 1
+vac=> SELECT * FROM ttest;
+ x
+---
+ 1
+(1 row)
+
+=> INSERT INTO ttest SELECT x * 2 FROM ttest;
+INFO:  trigf (fired before): there are 1 rows in ttest
+INFO:  trigf (fired after ): there are 2 rows in ttest
+                                       ^^^^^^
+                             remember what we said about visibility.
+INSERT 167794 1
+=> SELECT * FROM ttest;
+ x
+---
+ 1
+ 2
+(2 rows)
+
+=> UPDATE ttest SET x = NULL WHERE x = 2;
+INFO:  trigf (fired before): there are 2 rows in ttest
+UPDATE 0
+=> UPDATE ttest SET x = 4 WHERE x = 2;
+INFO:  trigf (fired before): there are 2 rows in ttest
+INFO:  trigf (fired after ): there are 2 rows in ttest
+UPDATE 1
+vac=> SELECT * FROM ttest;
+ x
+---
+ 1
+ 4
+(2 rows)
+
+=> DELETE FROM ttest;
+INFO:  trigf (fired before): there are 2 rows in ttest
+INFO:  trigf (fired before): there are 1 rows in ttest
+INFO:  trigf (fired after ): there are 0 rows in ttest
+INFO:  trigf (fired after ): there are 0 rows in ttest
+                                       ^^^^^^
+                             remember what we said about visibility.
+DELETE 2
+=> SELECT * FROM ttest;
+ x
+---
+(0 rows)
